@@ -35,8 +35,8 @@ fn main() {
             // "cat" => commands::cat::cat(args),
             // "cp" => commands::cp::cp(args),
             // "rm" => commands::rm::rm(args),
-            // "mv" => commands::mv::mv(args),
-            // "mkdir" => commands::mkdir::mkdir(args),
+            "mv" => commands::mv::mv(args),
+            "mkdir" => commands::mkdir::mkdir(args),
             // "exit" => process::exit(0),
             _ => eprintln!("Command '{}' not found", command),
         }
