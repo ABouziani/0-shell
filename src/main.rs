@@ -29,11 +29,11 @@ fn main() {
         
         match command {
             "ls" => commands::ls::ls(args),
-            // "echo" => commands::echo::echo(args),
+            "echo" => commands::echo::echo(args),
             // "cd" => commands::cd::cd(args),
             "pwd" => commands::pwd::pwd(args),
-            // "cat" => commands::cat::cat(args),
-            // "cp" => commands::cp::cp(args),
+            "cat" => commands::cat::cat(args),
+            "cp" => commands::cp::cp(args),
             // "rm" => commands::rm::rm(args),
             "mv" => commands::mv::mv(args),
             "mkdir" => commands::mkdir::mkdir(args),
