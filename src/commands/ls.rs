@@ -87,8 +87,8 @@ fn list_dir(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::
 }
 
 fn print_long_format(metadata: &Metadata) {
-    fn mode_string(is_dir: bool, mode: u32) -> String {
-        let file_type = if is_dir { "d" } else { "-" };
+    fn mode_string(is_dir: bool, is_symlink: bool, mode: u32) -> String {
+        let file_type = if is_dir { "d" } else if is_symlink { "l" } else { "-" };
         let perms = [
             (mode & 0o400 != 0, 'r'),
             (mode & 0o200 != 0, 'w'),
@@ -113,7 +113,8 @@ fn print_long_format(metadata: &Metadata) {
     let time_str = datetime.format("%b %e %H:%M").to_string();
 
     let is_dir = metadata.is_dir();
-    let mode_str = mode_string(is_dir, mode);
+    let is_symlink = metadata.is_symlink();
+    let mode_str = mode_string(is_dir, is_symlink, mode);
 
     print!(
         "{} {:>2} {:>5} {:>5} {:>8} {} ",
