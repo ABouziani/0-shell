@@ -1,44 +1,43 @@
-mod commands;
+mod parser;
 
+use parser::*;
 use std::io::{self, Write};
-use std::process;
 
 fn main() {
+    let mut input = String::new();
+    let mut clear = true;
     loop {
-        print!("$ ");
-        io::stdout().flush().unwrap();
+        
+        if clear { print!("$ "); input.clear()};
+        if let Err(_) = io::stdout().flush() {
+            break;
+        }     
+        
+        let n = io::stdin().read_line(&mut input).unwrap();
 
-        let mut input = String::new();
-        let bytes_read = io::stdin().read_line(&mut input).unwrap();
-
-        if bytes_read == 0 {
+        if n == 0 {
             println!();
             break;
         }
 
-        let input = input.trim();
-        if input.is_empty() {
+        let line = input.trim();    
+
+        if line.is_empty() {
             continue;
         }
+        match ShellParser::new(line.to_string()).parse(){
+            Ok(v)=> { 
+                clear = true; 
+                println!("-> {:?}",v)
+            },
+            Err(s) => { 
+                clear= false;
+                input.pop();
+                input.push_str("'$'\n'");
+                print!("{}",s)
+            }
 
-    
-        let tokens: Vec<&str> = input.split_whitespace().collect();
-        let command = tokens[0];
-        let args = &tokens[1..];
-
-        
-        match command {
-            "ls" => commands::ls::ls(args),
-            "pwd" => commands::pwd::pwd(args),
-            // "echo" => commands::echo::echo(args),
-            // "cd" => commands::cd::cd(args),
-            // "cat" => commands::cat::cat(args),
-            // "cp" => commands::cp::cp(args),
-            // "rm" => commands::rm::rm(args),
-            // "mv" => commands::mv::mv(args),
-            // "mkdir" => commands::mkdir::mkdir(args),
-            // "exit" => process::exit(0),
-            _ => eprintln!("Command '{}' not found", command),
-        }
+        };
     }
 }
+
