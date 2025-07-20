@@ -21,12 +21,10 @@ fn main() {
             continue;
         }
 
-    
         let tokens: Vec<&str> = input.split_whitespace().collect();
         let command = tokens[0];
         let args = &tokens[1..];
 
-        
         match command {
             "ls" => commands::ls::ls(args),
             "echo" => commands::echo::echo(args),
