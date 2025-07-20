@@ -2,21 +2,24 @@ use std::fs;
 use std::path::Path;
 use std::error::Error;
 
-fn cp(args: &Vec<&str>) -> Result<(),Box<dyn Error>> {
-    if args.len() <= 2 {
-        return Err("No files or directories provided.".into());
+pub fn cp(args: &Vec<&str>) {
+    if args.len() < 2 {
+        println!("No files or directories provided.");
+        return;
     }
 
     let sources = &args[1..args.len() - 1];
     let dest = args.last().unwrap();
     if sources.is_empty() {
-        return Err("No files or directories provided.".into());
+        println!("No files or directories provided.");
+        return;
     }
     for source in sources {
-        copy_file(source, dest)?;
+        if let Err(e) = copy_file(source, dest){
+            println!("{e}");
+            return;
+        }
     }
-
-    Ok(())
 }
 fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
     let source_path = Path::new(source);
@@ -28,13 +31,13 @@ fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
 
     if source_path.is_file() {
         let final_dest = {
-            if dest.exists() && dest.is_dir() {
-                dest.join(source.file_name().ok_or("Missing filename")?)
-            } else if !dest.exists(){
-                fs::create_dir_all(dest)?;
-                dest.join(source.file_name().ok_or("Missing filename")?)
+            if dest_path.exists() && dest_path.is_dir() {
+                dest_path.join(source_path.file_name().ok_or("Missing filename")?)
+            } else if !dest_path.exists(){
+                fs::create_dir_all(dest_path)?;
+                dest_path.join(source_path.file_name().ok_or("Missing filename")?)
             } else {
-                dest.to_path_buf()
+                dest_path.to_path_buf()
             }
         };
     
@@ -43,10 +46,8 @@ fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
                 return Err(format!("Destination folder {:?} does not exist", parent).into());
             }
         }
-        fs::copy(source, &final_dest)?;
+        fs::copy(source_path, final_dest)?;
         return Ok(());
     } 
     return Err(format!("'{}' is a directory (not copied)", source).into());
 }
-
-

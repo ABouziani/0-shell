@@ -1,5 +1,8 @@
 pub mod mkdir;
 pub mod ls;
 pub mod pwd;
-// pub mod cp;
-// pub mod rm;
+pub mod cp;
+pub mod rm;
+pub mod mv;
+pub mod echo;
+pub mod cat;
