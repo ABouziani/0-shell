@@ -8,7 +8,7 @@ pub fn cp(args: &Vec<&str>) {
         return;
     }
 
-    let sources = &args[1..args.len() - 1];
+    let sources = &args[..args.len() - 1];
     let dest = args.last().unwrap();
     if sources.is_empty() {
         println!("No files or directories provided.");
@@ -33,16 +33,13 @@ fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
         let final_dest = {
             if dest_path.exists() && dest_path.is_dir() {
                 dest_path.join(source_path.file_name().ok_or("Missing filename")?)
-            } else if !dest_path.exists(){
-                fs::create_dir_all(dest_path)?;
-                dest_path.join(source_path.file_name().ok_or("Missing filename")?)
             } else {
                 dest_path.to_path_buf()
             }
         };
     
         if let Some(parent) = final_dest.parent() {
-            if !parent.exists() {
+            if dest.contains("/") && !parent.exists() {
                 return Err(format!("Destination folder {:?} does not exist", parent).into());
             }
         }
