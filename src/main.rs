@@ -1,5 +1,5 @@
 mod parser;
-
+mod commands;
 use parser::*;
 use std::io::{self, Write};
 
@@ -26,14 +26,30 @@ fn main() {
             continue;
         }
         match ShellParser::new(line.to_string()).parse(){
-            Ok(v)=> { 
+            Ok(tokens)=> { 
                 clear = true; 
-                println!("-> {:?}",v)
+                let command = tokens[0].as_str();
+                let args = &tokens[1..].iter().map(|el| el.as_str()).collect::<Vec<_>>();
+
+                
+                match command {
+                    "ls" => commands::ls::ls(args),
+                    "pwd" => commands::pwd::pwd(args),
+                    // "echo" => commands::echo::echo(args),
+                    // "cd" => commands::cd::cd(args),
+                    // "cat" => commands::cat::cat(args),
+                    // "cp" => commands::cp::cp(args),
+                    // "rm" => commands::rm::rm(args),
+                    // "mv" => commands::mv::mv(args),
+                    // "mkdir" => commands::mkdir::mkdir(args),
+                    // "exit" => process::exit(0),
+                    _ => eprintln!("Command '{}' not found", command),
+                }
             },
             Err(s) => { 
                 clear= false;
-                input.pop();
-                input.push_str("'$'\n'");
+                // input.pop();
+                // input.push_str("'$'\n'");
                 print!("{}",s)
             }
 

@@ -29,30 +29,66 @@ impl ShellParser {
     }
     
     pub fn parse_token(&mut self) -> Result<String, String> {
-        let mut token = String::new();
-        
-        while self.position < self.input.len() {
-            let ch = self.current_char();
-            
-            match ch {
-                ' ' | '\t' => break,
-                '\'' => {
-                    self.advance();
-                    token.push_str(&self.parse_single_quoted()?);
-                }
-                '"' => {
-                    self.advance();
-                    token.push_str(&self.parse_double_quoted()?);
-                }
-                _ => {
-                    token.push(ch);
-                    self.advance();
+            let mut token = String::new();
+
+            while self.position < self.input.len() {
+                let ch = self.current_char();
+
+                match ch {
+                    ' ' | '\t' => break,
+                    '\\' => {
+                        self.advance();
+                        if self.position < self.input.len() {
+                            token.push(self.current_char());
+                            self.advance();
+                        } else {
+                            // Handle case where '\' is at end of input
+                            token.push('\\');
+                        }
+                    }
+                    '\'' => {
+                        self.advance();
+                        token.push_str(&self.parse_single_quoted()?);
+                    }
+                    '"' => {
+                        self.advance();
+                        token.push_str(&self.parse_double_quoted()?);
+                    }
+                    _ => {
+                        token.push(ch);
+                        self.advance();
+                    }
                 }
             }
+
+            Ok(token)
         }
+
+    //     pub fn parse_token(&mut self) -> Result<String, String> {
+    //     let mut token = String::new();
         
-        Ok(token)
-    }
+    //     while self.position < self.input.len() {
+    //         let ch = self.current_char();
+            
+    //         match ch {
+    //             ' ' | '\t' => break,
+    //             '\'' => {
+    //                 self.advance();
+    //                 token.push_str(&self.parse_single_quoted()?);
+    //             }
+    //             '"' => {
+    //                 self.advance();
+    //                 token.push_str(&self.parse_double_quoted()?);
+    //             }
+    //             _ => {
+    //                 token.push(ch);
+    //                 self.advance();
+    //             }
+    //         }
+    //     }
+        
+    //     Ok(token)
+    // }
     
     pub fn parse_single_quoted(&mut self) -> Result<String, String> {
         let mut content = String::new();
