@@ -15,6 +15,7 @@ pub fn mv(args: &[&str]) {
     let new_path = args[args.len() - 1];
     for i in args {
         let old_path = Path::new(i);
+        println!("{:#?}",old_path);
         let new_path = Path::new(&new_path);
         if !old_path.exists() || !new_path.exists() {
             println!("path in valid",); 
@@ -35,7 +36,7 @@ pub fn mv(args: &[&str]) {
 
             _ = fs::remove_file(old_path);
         } else {
-            fs::rename(old_path, new_path);
+           _= fs::rename(old_path, new_path);
         }
     }
 }
