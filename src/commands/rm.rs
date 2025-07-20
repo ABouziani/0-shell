@@ -9,7 +9,7 @@ pub fn rm(args: &Vec<&str>){
     }
 
     let is_recursive = args.contains(&"-r");
-    let paths: Vec<_> = args.iter().skip(1).filter(|&&arg| arg != "-r").collect();
+    let paths: Vec<_> = args.iter().filter(|&&arg| arg != "-r").collect();
     if paths.is_empty() {
         println!("No files or directories provided.");
         return;
