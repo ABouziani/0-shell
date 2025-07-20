@@ -2,6 +2,7 @@ mod parser;
 mod commands;
 use parser::*;
 use std::io::{self, Write};
+use std::process;
 
 fn main() {
     let mut input = String::new();
@@ -42,7 +43,7 @@ fn main() {
                     // "rm" => commands::rm::rm(args),
                     // "mv" => commands::mv::mv(args),
                     // "mkdir" => commands::mkdir::mkdir(args),
-                    // "exit" => process::exit(0),
+                    "exit" => process::exit(0),
                     _ => eprintln!("Command '{}' not found", command),
                 }
             },
