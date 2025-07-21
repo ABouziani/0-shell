@@ -6,3 +6,9 @@ mv error ( mv a.txt b.txt c.txt)
 2 or more args in cp and mv
 
 cat no nex line,
+
+
+
+case 
+    - cat - - - - -
+    - mv link_file  dir
