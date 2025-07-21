@@ -10,6 +10,11 @@ pub fn cp(args: &Vec<&str>) {
 
     let sources = &args[..args.len() - 1];
     let dest = args.last().unwrap();
+    let dest_path = Path::new(dest);
+    if dest_path.exists() && !dest_path.is_dir() && sources.len() > 1 {
+        println!("Destination '{}' not dir.", dest);
+        return;
+    }
     if sources.is_empty() {
         println!("No files or directories provided.");
         return;
@@ -24,6 +29,7 @@ pub fn cp(args: &Vec<&str>) {
 fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
     let source_path = Path::new(source);
     let dest_path = Path::new(dest);
+    
 
     if !source_path.exists() {
         return Err(format!("cannot stat '{}': No such file or directory", source).into());

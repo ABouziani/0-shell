@@ -36,24 +36,9 @@ fn remove_file_or_dir(path: &str, is_recursive: bool) -> Result<(), Box<dyn Erro
         if !is_recursive {
             return Err(format!("cannot remove '{}': Is a directory", path).into());
         }
-        remove_directory_recursive(path_obj)?;
+        fs::remove_dir_all(path_obj)?;
     }
     Ok(())
 }
 
-fn remove_directory_recursive(dir: &Path) -> Result<(), Box<dyn Error>> {
-    for entry in fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
-        
-        if path.is_file() {
-            fs::remove_file(&path)?;
-        } else if path.is_dir() {
-            remove_directory_recursive(&path)?;
-        }
-    }
-    
-    fs::remove_dir(dir)?;
-    Ok(())
-}
 
