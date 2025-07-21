@@ -1,0 +1,8 @@
+absolut path
+same file detection
++ permission
+mv error ( mv a.txt b.txt c.txt)
+
+2 or more args in cp and mv
+
+cat no nex line,
