@@ -5,8 +5,17 @@ use std::io::BufReader;
 
 pub fn cat(args: &[&str]) {
     if args.len() < 1 {
-        println!("Error: argement in valid");
-        return;
+        loop {
+            let mut input = String::new();
+            if let Err(e) = std::io::stdin().read_line(&mut input) {
+                eprintln!("Error reading input: {}", e);
+                return;
+            }
+            if input.trim().is_empty() {
+                break;
+            }
+            println!("{}", input.trim());
+        }
     }
     for i in args {
         let metadata = fs::metadata(i);
