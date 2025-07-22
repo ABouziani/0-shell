@@ -39,7 +39,10 @@ fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
         let final_dest = {
             if dest_path.exists() && dest_path.is_dir() {
                 dest_path.join(source_path.file_name().ok_or("Missing filename")?)
-            } else {
+            } else if dest_path.file_name() == Some(source_path.file_name().unwrap()) {
+                return Err(format!("cp: {} and {} are the same file",dest,source).into());
+
+            }else {
                 dest_path.to_path_buf()
             }
         };

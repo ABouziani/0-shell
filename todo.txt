@@ -12,3 +12,11 @@ cat no nex line,
 case 
     - cat - - - - -
     - mv link_file  dir
+
+
+
+*******"$ ^[[A   ' not found
+$ mmand '" ****************
+
+
+************symbolink*******************

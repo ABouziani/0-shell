@@ -10,6 +10,10 @@ pub fn rm(args: &Vec<&str>){
 
     let is_recursive = args.contains(&"-r");
     let paths: Vec<_> = args.iter().filter(|&&arg| arg != "-r").collect();
+    if paths.iter().any(|&arg| *arg == "." || *arg == "..") {
+        println!("refusing to remove '.' or '..' directory: skipping '.'");
+        return;
+    }
     if paths.is_empty() {
         println!("No files or directories provided.");
         return;
@@ -30,7 +34,7 @@ fn remove_file_or_dir(path: &str, is_recursive: bool) -> Result<(), Box<dyn Erro
         return Err(format!("cannot remove '{}': No such file or directory", path).into());
     }
 
-    if path_obj.is_file() {
+    if path_obj.is_file() || path_obj.is_symlink() {
         fs::remove_file(path_obj)?;
     } else if path_obj.is_dir() {
         if !is_recursive {
