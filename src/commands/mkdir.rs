@@ -1,6 +1,6 @@
 use std::fs;
 
-pub fn mkdir(args: &[String]) {
+pub fn mkdir(args: &Vec<&str>) {
     if args.is_empty() {
         eprintln!("mkdir: missing operand");
         return;

@@ -1,48 +1,60 @@
+mod parser;
+mod commands;
+use parser::*;
 use std::io::{self, Write};
 use std::process;
 
-mod commands;
-
 fn main() {
+    let mut input = String::new();
+    let mut clear = true;
     loop {
-        print!("$ ");
-        io::stdout().flush().unwrap();
+        
+        if clear { print!("$ "); input.clear()};
+        if let Err(_) = io::stdout().flush() {
+            break;
+        }     
+        
+        let n = io::stdin().read_line(&mut input).unwrap();
 
-        let mut input = String::new();
-        let bytes = io::stdin().read_line(&mut input);
-
-        // Handle EOF (Ctrl+D)
-        match bytes {
-            Ok(0) => {
-                println!();
-                break;
-            }
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("Error reading input: {}", e);
-                continue;
-            }
+        if n == 0 {
+            println!();
+            break;
         }
 
-        let input = input.trim();
-        if input.is_empty() {
+        let line = input.trim();    
+
+        if line.is_empty() {
             continue;
         }
+        match ShellParser::new(line.to_string()).parse(){
+            Ok(tokens)=> { 
+                clear = true; 
+                let command = tokens[0].as_str();
+                let args = &tokens[1..].iter().map(|el| el.as_str()).collect::<Vec<_>>();
 
-        let parts: Vec<String> = input.split_whitespace().map(|s| s.to_string()).collect();
-        let command = &parts[0];
-        let args = &parts[1..];
-
-        // Command match
-        match command.as_str() {
-            "mkdir" => commands::mkdir::mkdir(args),
-            "echo" => commands::echo::echo(args),
-            "cd" => commands::cd::cd(args),
-            "exit" => {
-                println!("Bye!");
-                process::exit(0);
+                
+                match command {
+                    "ls" => commands::ls::ls(args),
+                    "pwd" => commands::pwd::pwd(args),
+                    "echo" => commands::echo::echo(args),
+                    // "cd" => commands::cd::cd(args),
+                    "cat" => commands::cat::cat(args),
+                    "cp" => commands::cp::cp(args),
+                    "rm" => commands::rm::rm(args),
+                    "mv" => commands::mv::mv(args),
+                    "mkdir" => commands::mkdir::mkdir(args),
+                    "exit" => process::exit(0),
+                    _ => eprintln!("Command '{}' not found", command),
+                }
+            },
+            Err(s) => { 
+                clear= false;
+                // input.pop();
+                // input.push_str("'$'\n'");
+                print!("{}",s)
             }
-            _ => eprintln!("Command '{}' not found", command),
-        }
+
+        };
     }
 }
+
