@@ -3,6 +3,7 @@ use std::os::unix::fs::{MetadataExt, PermissionsExt, FileTypeExt};
 use std::time::SystemTime;
 use chrono::{DateTime, Local, Duration};
 use std::io;
+use std::path::Path;
 
 use users::{get_user_by_uid, get_group_by_gid};
 
@@ -42,9 +43,19 @@ pub fn ls(args: &[&str]) {
             println!("{}:", target);
         }
 
-        if let Err(e) = list_dir(target, show_all, long_list, classify) {
+        if let Err(e) = list_path(target, show_all, long_list, classify) {
             eprintln!("ls: cannot access '{}': {}", target, e);
         }
+    }
+}
+
+fn list_path(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::Result<()> {
+    let metadata = fs::symlink_metadata(path)?;
+
+    if metadata.is_dir() {
+        list_dir(path, show_all, long_list, classify)
+    } else {
+        list_file(path, &metadata, long_list, classify)
     }
 }
 
@@ -78,13 +89,11 @@ fn list_dir(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::
         }
     }
 
-    // Gather formatting info
     let mut user_width = 0;
     let mut group_width = 0;
     let mut nlink_width = 0;
     let mut size_width = 0;
     let mut is_device = Vec::new();
-
     let mut enriched_entries = Vec::new();
 
     for (name, md) in &all_entries {
@@ -104,15 +113,13 @@ fn list_dir(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::
         let ft = md.file_type();
         let size_or_dev = if ft.is_char_device() || ft.is_block_device() {
             is_device.push(true);
-            // 3 for major + comma + 4 for minor
-            4 + 5
+            9
         } else {
             is_device.push(false);
             md.size().to_string().len()
         };
 
         size_width = size_width.max(size_or_dev);
-
         enriched_entries.push((name.clone(), md.clone(), user, group));
     }
 
@@ -130,12 +137,19 @@ fn list_dir(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::
 
         print!("{}", file_name);
 
-        if classify {
+        let full_path = format!("{}/{}", path, file_name);
+        if metadata.file_type().is_symlink() && long_list {
+            if let Ok(target) = fs::read_link(&full_path) {
+                print!(" -> {}", target.to_string_lossy());
+            }
+        } else if classify {
             let ft = metadata.file_type();
             if ft.is_dir() {
                 print!("/");
             } else if ft.is_symlink() {
                 print!("@");
+            } else if ft.is_socket() {
+                print!("=");
             } else if metadata.permissions().mode() & 0o111 != 0 {
                 print!("*");
             }
@@ -144,6 +158,52 @@ fn list_dir(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::
         println!();
     }
 
+    Ok(())
+}
+
+fn list_file(path: &str, metadata: &Metadata, long_list: bool, classify: bool) -> io::Result<()> {
+    let file_name = Path::new(path)
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| path.to_string());
+
+    let user = get_user_by_uid(metadata.uid())
+        .map(|u| u.name().to_string_lossy().to_string())
+        .unwrap_or_else(|| metadata.uid().to_string());
+    let group = get_group_by_gid(metadata.gid())
+        .map(|g| g.name().to_string_lossy().to_string())
+        .unwrap_or_else(|| metadata.gid().to_string());
+
+    let user_width = user.len().max(8);
+    let group_width = group.len().max(8);
+    let nlink_width = metadata.nlink().to_string().len().max(2);
+    let size_width = metadata.size().to_string().len().max(6);
+    let is_device = metadata.file_type().is_char_device() || metadata.file_type().is_block_device();
+
+    if long_list {
+        print_long_format(metadata, &user, &group, user_width, group_width, nlink_width, size_width, is_device);
+    }
+
+    print!("{}", file_name);
+
+    if metadata.file_type().is_symlink() && long_list {
+        if let Ok(target) = fs::read_link(path) {
+            print!(" -> {}", target.to_string_lossy());
+        }
+    } else if classify {
+        let ft = metadata.file_type();
+        if ft.is_dir() {
+            print!("/");
+        } else if ft.is_symlink() {
+            print!("@");
+        } else if ft.is_socket() {
+            print!("=");
+        } else if metadata.permissions().mode() & 0o111 != 0 {
+            print!("*");
+        }
+    }
+
+    println!();
     Ok(())
 }
 
