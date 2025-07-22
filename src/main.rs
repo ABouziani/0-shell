@@ -29,15 +29,15 @@ fn main() {
         match ShellParser::new(line.to_string()).parse(){
             Ok(tokens)=> { 
                 clear = true; 
-                let command = tokens[0].as_str();
-                let args = &tokens[1..].iter().map(|el| el.as_str()).collect::<Vec<_>>();
+                let command: &str = tokens[0].as_str();
+                let args: &Vec<&str> = &tokens[1..].iter().map(|el| el.as_str()).collect::<Vec<_>>();
 
                 
                 match command {
                     "ls" => commands::ls::ls(args),
                     "pwd" => commands::pwd::pwd(args),
                     "echo" => commands::echo::echo(args),
-                    // "cd" => commands::cd::cd(args),
+                    "cd" => commands::cd::cd(args),
                     "cat" => commands::cat::cat(args),
                     "cp" => commands::cp::cp(args),
                     "rm" => commands::rm::rm(args),

@@ -1,7 +1,7 @@
 // use std::fs::{File, OpenOptions};
 // use std::io::{self, Write};
 
-pub fn echo(args: &[String]) {
+pub fn echo(args: &Vec<&str>) {
     if args.is_empty() {
         println!();
         return;
