@@ -1,6 +1,5 @@
 use std::fs;
 use std::fs::File;
-use std::io;
 use std::path::Path;
 pub fn mv(args: &[&str]) {
     if args.len() < 2 {
@@ -92,8 +91,8 @@ pub fn mv(args: &[&str]) {
 
                 // Create the new directory (and parents if needed)
                 if !new_path.exists() {
-                    fs::create_dir_all(&new_path);
-                    fs::rename(old_path, new_path);
+                    _=fs::create_dir_all(&new_path);
+                    _=fs::rename(old_path, new_path);
                     // println!("Created directory {:?}", new_path);
                 } else {
                     println!("Directory {:?} already exists", new_path);
@@ -112,21 +111,7 @@ pub fn mv(args: &[&str]) {
     }
 }
 
-fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
-    if !dst.exists() {
-        fs::create_dir_all(dst)?;
-    }
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        let file_type = entry.file_type()?;
-        let dest_path = dst.join(entry.file_name());
-        if file_type.is_dir() {
-        } else {
-            fs::copy(entry.path(), dest_path)?;
-        }
-    }
-    Ok(())
-}
+
 
 fn last_dir_in_path(path: &Path) -> Option<&str> {
     println!("{:?}", path);
