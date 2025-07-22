@@ -51,11 +51,7 @@ fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
         if let Some(parent) = final_dest.parent() {
             if dest.contains("/") && !parent.exists() {
                 return Err(format!("Destination folder {:?} does not exist", parent).into());
-            } else if let Some(name) = final_dest.file_name() {
-                if !name.to_str().unwrap_or_default().contains(".") && !final_dest.exists() {
-                    return Err(format!("cp: target {:?} is not a directory", name).into());
-                }
-            }
+            } 
         }
         fs::copy(source_path, final_dest)?;
         return Ok(());

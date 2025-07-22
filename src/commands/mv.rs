@@ -1,100 +1,183 @@
 use std::fs;
-
-use std::fs::File;
-
 use std::path::Path;
-pub fn mv(args: &[&str]) {
+use std::io;
+
+
+pub fn mv(args: &Vec<&str>) {
     if args.len() < 2 {
-        println!("Error: argement in valid");
+        eprintln!("mv: missing file operand");
         return;
-    } else if args.len() > 2 {
-        let path =  Path::new(args[args.len() - 1]);
-        if path.is_file(){
-            println!("mv: target {:?} is not a directory",path);
-            return;
-        }
     }
 
-    let path = args[args.len() - 1];
+    let dest_path = Path::new(args[args.len() - 1]);
+    let sources = &args[0..args.len() - 1];
 
-    for i in &args[0..args.len() - 1] {
-        println!("{}", i);
-        let old_path = Path::new(i);
-        let new_path = Path::new(&path);
-        if path.contains("/") && !new_path.exists() {
-            println!(
-                "mv: cannot move {:?} to {:?}: Not a directory",
-                old_path, new_path
-            );
-            continue;
+    if sources.len() > 1 && !dest_path.is_dir() {
+        eprintln!("mv: target '{}' is not a directory", dest_path.display());
+        return;
+    }
+
+    for source_str in sources {
+        let source_path = Path::new(source_str);
+        
+        if let Err(e) = move_single_item(source_path, dest_path) {
+            eprintln!("mv: cannot move '{}' to '{}': {}", 
+                     source_path.display(), dest_path.display(), e);
         }
-        if !old_path.exists() {
-            let meta = match old_path.symlink_metadata() {
-                Ok(m) => m,
-                Err(_) => {
-                    println!("mv: cannot stat {:?}: No such file or directory", old_path);
-                    continue;
+    }
+}
+
+fn move_single_item(source: &Path, dest: &Path) -> io::Result<()> {
+    if !source.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("No such file or directory: '{}'", source.display())
+        ));
+    }
+
+    let final_dest = if dest.is_dir() {
+        let filename = source.file_name()
+            .ok_or_else(|| io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "Invalid source file name"
+            ))?;
+        dest.join(filename)
+    } else {
+        dest.to_path_buf()
+    };
+
+    match fs::rename(source, &final_dest) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            match e.kind() {
+                io::ErrorKind::PermissionDenied => Err(e),
+                _ => {
+                    copy_and_delete(source, &final_dest)
                 }
-            };
-            if meta.is_symlink() {
-                let name_file = old_path.file_name();
-                let t = match name_file {
-                    Some(name) => name,
-                    None => {
-                        eprintln!("Error: Invalid source file name.");
-                        continue;
-                    }
-                };
-                let v = new_path.join(t);
-
-                let _ = match File::create(&v) {
-                    Ok(v) => v,
-                    Err(err) => {
-                        println!("Error: {}", err);
-                        return;
-                    }
-                };
-
-                _ = fs::copy(v, new_path);
-
-                _ = fs::remove_file(old_path);
-            } else {
-                println!(
-                    "-- mv: cannot stat {:?}: No such file or directory",
-                    old_path
-                );
-                continue;
-            }
-        }
-        if new_path.is_dir() && old_path.is_file() {
-            let name_file = old_path.file_name();
-            let t = match name_file {
-                Some(name) => name,
-                None => {
-                    eprintln!("Error: Invalid source file name.");
-                    continue;
-                }
-            };
-            let v = new_path.join(t);
-
-            let _ = match File::create(&v) {
-                Ok(v) => v,
-                Err(err) => {
-                    println!("Error: {}", err);
-                    return;
-                }
-            };
-
-            _ = fs::copy(v, new_path);
-
-            _ = fs::remove_file(old_path);
-        } else {
-            if let Err(err) = fs::rename(&old_path, &new_path) {
-                println!(
-                    "mv: failed to move {:?} to {:?}: {}",
-                    old_path, new_path, err
-                );
             }
         }
     }
 }
+
+
+fn copy_and_delete(source: &Path, dest: &Path) -> io::Result<()> {
+    if source.is_file() {
+        fs::copy(source, dest)?;
+        fs::remove_file(source)?;
+    } else if source.is_dir() {
+        copy_dir_recursive(source, dest)?;
+        fs::remove_dir_all(source)?;
+    } else {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Source is neither a file nor a directory"
+        ));
+    }
+    
+    Ok(())
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> io::Result<()> {
+    if !dst.exists() {
+        fs::create_dir_all(dst)?;
+    }
+
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+
+        if src_path.is_dir() {
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else {
+            fs::copy(&src_path, &dst_path)?;
+        }
+    }
+
+    Ok(())
+}
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use std::fs::File;
+//     use std::io::Write;
+//     use tempfile::TempDir;
+
+//     #[test]
+//     fn test_mv_file_to_file() {
+//         let temp_dir = TempDir::new().unwrap();
+//         let source = temp_dir.path().join("source.txt");
+//         let dest = temp_dir.path().join("dest.txt");
+
+//         // Create source file
+//         let mut file = File::create(&source).unwrap();
+//         writeln!(file, "test content").unwrap();
+
+//         // Test move
+//         let args = vec![source.to_str().unwrap(), dest.to_str().unwrap()];
+//         assert!(mv(&args).is_ok());
+
+//         // Verify
+//         assert!(!source.exists());
+//         assert!(dest.exists());
+//     }
+
+//     #[test]
+//     fn test_mv_file_to_directory() {
+//         let temp_dir = TempDir::new().unwrap();
+//         let source = temp_dir.path().join("source.txt");
+//         let dest_dir = temp_dir.path().join("dest_dir");
+//         let expected_dest = dest_dir.join("source.txt");
+
+//         // Create source file and destination directory
+//         let mut file = File::create(&source).unwrap();
+//         writeln!(file, "test content").unwrap();
+//         fs::create_dir(&dest_dir).unwrap();
+
+//         // Test move
+//         let args = vec![source.to_str().unwrap(), dest_dir.to_str().unwrap()];
+//         assert!(mv(&args).is_ok());
+
+//         // Verify
+//         assert!(!source.exists());
+//         assert!(expected_dest.exists());
+//     }
+
+//     #[test]
+//     fn test_mv_multiple_files_to_directory() {
+//         let temp_dir = TempDir::new().unwrap();
+//         let source1 = temp_dir.path().join("source1.txt");
+//         let source2 = temp_dir.path().join("source2.txt");
+//         let dest_dir = temp_dir.path().join("dest_dir");
+
+//         // Create source files and destination directory
+//         File::create(&source1).unwrap();
+//         File::create(&source2).unwrap();
+//         fs::create_dir(&dest_dir).unwrap();
+
+//         // Test move
+//         let args = vec![
+//             source1.to_str().unwrap(),
+//             source2.to_str().unwrap(),
+//             dest_dir.to_str().unwrap()
+//         ];
+//         assert!(mv(&args).is_ok());
+
+//         // Verify
+//         assert!(!source1.exists());
+//         assert!(!source2.exists());
+//         assert!(dest_dir.join("source1.txt").exists());
+//         assert!(dest_dir.join("source2.txt").exists());
+//     }
+
+//     #[test]
+//     fn test_mv_nonexistent_file() {
+//         let temp_dir = TempDir::new().unwrap();
+//         let source = temp_dir.path().join("nonexistent.txt");
+//         let dest = temp_dir.path().join("dest.txt");
+
+//         let args = vec![source.to_str().unwrap(), dest.to_str().unwrap()];
+//         assert!(mv(&args).is_err());
+//     }
+// }
