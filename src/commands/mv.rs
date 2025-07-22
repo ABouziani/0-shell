@@ -1,16 +1,15 @@
 use std::fs;
-
 use std::fs::File;
-
+use std::io;
 use std::path::Path;
 pub fn mv(args: &[&str]) {
     if args.len() < 2 {
         println!("Error: argement in valid");
         return;
     } else if args.len() > 2 {
-        let path =  Path::new(args[args.len() - 1]);
-        if path.is_file(){
-            println!("mv: target {:?} is not a directory",path);
+        let path = Path::new(args[args.len() - 1]);
+        if path.is_file() {
+            println!("mv: target {:?} is not a directory", path);
             return;
         }
     }
@@ -18,7 +17,6 @@ pub fn mv(args: &[&str]) {
     let path = args[args.len() - 1];
 
     for i in &args[0..args.len() - 1] {
-        println!("{}", i);
         let old_path = Path::new(i);
         let new_path = Path::new(&path);
         if path.contains("/") && !new_path.exists() {
@@ -88,7 +86,22 @@ pub fn mv(args: &[&str]) {
             _ = fs::copy(v, new_path);
 
             _ = fs::remove_file(old_path);
+        } else if old_path.is_dir() && new_path.is_dir() {
+            if let Some(last) = last_dir_in_path(old_path) {
+                let new_path = new_path.join(last);
+
+                // Create the new directory (and parents if needed)
+                if !new_path.exists() {
+                    fs::create_dir_all(&new_path);
+                    fs::rename(old_path, new_path);
+                    // println!("Created directory {:?}", new_path);
+                } else {
+                    println!("Directory {:?} already exists", new_path);
+                }
+            }
         } else {
+            println!("{:?}", old_path.is_dir());
+            println!("{:?}", new_path.is_dir());
             if let Err(err) = fs::rename(&old_path, &new_path) {
                 println!(
                     "mv: failed to move {:?} to {:?}: {}",
@@ -97,4 +110,25 @@ pub fn mv(args: &[&str]) {
             }
         }
     }
+}
+
+fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
+    if !dst.exists() {
+        fs::create_dir_all(dst)?;
+    }
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let dest_path = dst.join(entry.file_name());
+        if file_type.is_dir() {
+        } else {
+            fs::copy(entry.path(), dest_path)?;
+        }
+    }
+    Ok(())
+}
+
+fn last_dir_in_path(path: &Path) -> Option<&str> {
+    println!("{:?}", path);
+    path.file_name().and_then(|os_str| os_str.to_str())
 }
