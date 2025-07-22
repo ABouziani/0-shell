@@ -30,7 +30,7 @@ pub fn rm(args: &Vec<&str>){
 fn remove_file_or_dir(path: &str, is_recursive: bool) -> Result<(), Box<dyn Error>> {
     let path_obj = Path::new(path);
 
-    if !path_obj.exists() {
+    if !path_obj.exists() && !path_obj.is_symlink() {
         return Err(format!("cannot remove '{}': No such file or directory", path).into());
     }
 

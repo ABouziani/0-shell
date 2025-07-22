@@ -1,6 +1,6 @@
+use std::error::Error;
 use std::fs;
 use std::path::Path;
-use std::error::Error;
 
 pub fn cp(args: &Vec<&str>) {
     if args.len() < 2 {
@@ -20,7 +20,7 @@ pub fn cp(args: &Vec<&str>) {
         return;
     }
     for source in sources {
-        if let Err(e) = copy_file(source, dest){
+        if let Err(e) = copy_file(source, dest) {
             println!("{e}");
             return;
         }
@@ -29,31 +29,58 @@ pub fn cp(args: &Vec<&str>) {
 fn copy_file(source: &str, dest: &str) -> Result<(), Box<dyn Error>> {
     let source_path = Path::new(source);
     let dest_path = Path::new(dest);
-    
 
     if !source_path.exists() {
         return Err(format!("cannot stat '{}': No such file or directory", source).into());
+    }
+    if check_links(source, dest).is_err() {
+        return Err(format!("cp: {} and {} are the same file", source, dest).into());
     }
 
     if source_path.is_file() {
         let final_dest = {
             if dest_path.exists() && dest_path.is_dir() {
                 dest_path.join(source_path.file_name().ok_or("Missing filename")?)
-            } else if dest_path.file_name() == Some(source_path.file_name().unwrap()) {
-                return Err(format!("cp: {} and {} are the same file",dest,source).into());
-
-            }else {
+            } else if dest_path.file_name() == Some(source_path.file_name().unwrap_or_default()) {
+                return Err(format!("cp: {} and {} are the same file", dest, source).into());
+            } else {
                 dest_path.to_path_buf()
             }
         };
-    
+
         if let Some(parent) = final_dest.parent() {
             if dest.contains("/") && !parent.exists() {
                 return Err(format!("Destination folder {:?} does not exist", parent).into());
+            } else if let Some(name) = final_dest.file_name() {
+                if !name.to_str().unwrap_or_default().contains(".") && !final_dest.exists() {
+                    return Err(format!("cp: target {:?} is not a directory", name).into());
+                }
             }
         }
         fs::copy(source_path, final_dest)?;
         return Ok(());
-    } 
+    }
     return Err(format!("'{}' is a directory (not copied)", source).into());
+}
+
+
+fn check_links(source: &str, dest: &str) -> Result<(), String> {
+    let source_link = match fs::read_link(source) {
+        Ok(target) => target.to_string_lossy().into_owned(),
+        Err(_) => source.to_string(),
+    };
+
+    let dest_link = match fs::read_link(dest) {
+        Ok(target) => target.to_string_lossy().into_owned(),
+        Err(_) => dest.to_string(),
+    };
+
+    if dest_link == source_link {
+        return Err(format!(
+            "cp: {} and {} are the same file",
+            source, dest
+        ));
+    }
+
+    Ok(())
 }
