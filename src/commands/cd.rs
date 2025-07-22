@@ -1,7 +1,7 @@
 use std::env;
 
 pub fn cd(args: &Vec<&str>) {
-    let target = if args.is_empty() { // which mean change dir to home
+    let target = if args.is_empty() { 
         match env::var("HOME") {
             Ok(path) => path,
             Err(_) => {
@@ -10,7 +10,7 @@ pub fn cd(args: &Vec<&str>) {
             }
         }
     } else {
-        args[0].to_string().clone() // take 
+        args[0].to_string().clone()  
     };
 
     if let Err(e) = env::set_current_dir(&target) {

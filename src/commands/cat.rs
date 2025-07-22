@@ -17,7 +17,7 @@ pub fn cat(args: &[&str]) {
             match metadata {
                 Ok(metadata) => {
                     if !metadata.is_file() {
-                        println!("{}:Is not fole", i);
+                        println!("{}:Is not file", i);
                         return;
                     }
                 }

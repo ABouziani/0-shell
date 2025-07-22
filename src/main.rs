@@ -28,6 +28,10 @@ fn main() {
         }
         match ShellParser::new(line.to_string()).parse(){
             Ok(tokens)=> { 
+                if tokens.is_empty() {
+                    clear = true;
+                    continue;
+                }
                 clear = true; 
                 let command: &str = tokens[0].as_str();
                 let args: &Vec<&str> = &tokens[1..].iter().map(|el| el.as_str()).collect::<Vec<_>>();
@@ -44,13 +48,12 @@ fn main() {
                     "mv" => commands::mv::mv(args),
                     "mkdir" => commands::mkdir::mkdir(args),
                     "exit" => process::exit(0),
-                    _ => eprintln!("Command '{}' not found", command),
+                    _ => {
+                        println!("Command not found");},
                 }
             },
             Err(s) => { 
                 clear= false;
-                // input.pop();
-                // input.push_str("'$'\n'");
                 print!("{}",s)
             }
 
