@@ -37,6 +37,7 @@ fn main() {
         match command.as_str() {
             "mkdir" => commands::mkdir::mkdir(args),
             "echo" => commands::echo::echo(args),
+            "cd" => commands::cd::cd(args),
             "exit" => {
                 println!("Bye!");
                 process::exit(0);
