@@ -7,9 +7,18 @@ pub fn mv(args: &[&str]) {
     if args.len() < 2 {
         println!("Error: argement in valid");
         return;
+    } else if args.len() > 2 {
+        let path =  Path::new(args[args.len() - 1]);
+        if path.is_file(){
+            println!("mv: target {:?} is not a directory",path);
+            return;
+        }
     }
+
     let path = args[args.len() - 1];
+
     for i in &args[0..args.len() - 1] {
+        println!("{}", i);
         let old_path = Path::new(i);
         let new_path = Path::new(&path);
         if path.contains("/") && !new_path.exists() {
@@ -80,7 +89,12 @@ pub fn mv(args: &[&str]) {
 
             _ = fs::remove_file(old_path);
         } else {
-            _ = fs::rename(old_path, new_path);
+            if let Err(err) = fs::rename(&old_path, &new_path) {
+                println!(
+                    "mv: failed to move {:?} to {:?}: {}",
+                    old_path, new_path, err
+                );
+            }
         }
     }
 }
