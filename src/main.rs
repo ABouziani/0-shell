@@ -2,11 +2,17 @@ mod parser;
 mod commands;
 use parser::*;
 use std::io::{self, Write};
-use std::process;
+use std::{process, string};
+
+use crate::commands::pwd;
 
 fn main() {
+
+
+    
     let mut input = String::new();
     let mut clear = true;
+    let mut path_pwd = pwd::pwd();
     loop {
         
         if clear { print!("$ "); input.clear()};
@@ -35,9 +41,9 @@ fn main() {
                 
                 match command {
                     "ls" => commands::ls::ls(args),
-                    "pwd" => commands::pwd::pwd(args),
+                    "pwd" => commands::pwd::get_pwd(args ,&mut path_pwd ),
                     "echo" => commands::echo::echo(args),
-                    // "cd" => commands::cd::cd(args),
+                    "cd" => commands::cd::cd(args, &mut path_pwd),
                     "cat" => commands::cat::cat(args),
                     "cp" => commands::cp::cp(args),
                     "rm" => commands::rm::rm(args),

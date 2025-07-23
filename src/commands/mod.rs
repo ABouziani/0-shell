@@ -6,3 +6,4 @@ pub mod rm;
 pub mod mv;
 pub mod echo;
 pub mod cat;
+pub mod cd;
