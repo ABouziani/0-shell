@@ -1,10 +1,10 @@
 use std::env;
 use std::path::PathBuf;
 use std::sync::Mutex;
-
+use crate::commands::pwd::pwd;
 static mut PREV_DIR: Option<Mutex<PathBuf>> = None;
 
-pub fn cd(args: &Vec<&str>) {
+pub fn cd(args: &Vec<&str> , path :  &mut String) {
     let home_dir = match env::var("HOME") {
         Ok(path) => path,
         Err(_) => {
@@ -58,4 +58,5 @@ pub fn cd(args: &Vec<&str>) {
             }
         }
     }
+        *path = pwd()
 }
