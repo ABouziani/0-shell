@@ -8,34 +8,16 @@ pub fn cat(args: &[&str]) {
         parce();
     }
     for i in args {
-
         if i == &"-" {
             parce();
         } else {
-            let metadata = fs::metadata(i);
-
-            match metadata {
-                Ok(metadata) => {
-                    if !metadata.is_file() {
-                        println!("{}:Is not file", i);
-                        return;
-                    }
-                }
-                Err(e) => {
-                    println!("{}", e);
-                    return;
-                }
+            match read_file_simple(i) {
+                Ok(content) => print!("{}", content),
+                Err(e) => eprint!("cat: {}: {}", i, e),
             }
-
-            let file = File::open(i).unwrap();
-            let mut buf_reader = BufReader::new(file);
-            let mut contents = String::new();
-            buf_reader.read_to_string(&mut contents).unwrap();
-            print!("{}", contents)
         }
     }
     println!()
-    // }
 }
 
 fn parce() {
@@ -50,4 +32,21 @@ fn parce() {
         }
         println!("{}", input.trim());
     }
+}
+fn read_file_simple(path: &str) -> Result<String, std::io::Error> {
+    
+    let metadata = fs::metadata(path)?;
+    if !metadata.is_file() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!("{}: Is not a file", path)
+        ));
+    }
+
+    let file = File::open(path)?;
+    let mut buf_reader = BufReader::new(file);
+    let mut buffer = Vec::new();
+    buf_reader.read_to_end(&mut buffer)?;
+
+    Ok(String::from_utf8_lossy(&buffer).into_owned())
 }
