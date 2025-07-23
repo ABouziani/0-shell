@@ -11,7 +11,7 @@ pub fn cp(args: &Vec<&str>) {
     let sources = &args[..args.len() - 1];
     let dest = args.last().unwrap();
     let dest_path = Path::new(dest);
-    if dest_path.exists() && !dest_path.is_dir() && sources.len() > 1 {
+    if ((dest_path.exists() && !dest_path.is_dir()) || !dest_path.exists()) && sources.len() > 1 {
         println!("Destination '{}' not dir.", dest);
         return;
     }
