@@ -1,9 +1,8 @@
 mod parser;
 mod commands;
 use parser::*;
-use std::fs::read_to_string;
 use std::io::{self, Write};
-use std::{process, string};
+use std::{process};
 
 use crate::commands::pwd;
 
