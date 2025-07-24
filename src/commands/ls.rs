@@ -135,7 +135,8 @@ fn list_dir(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::
 
     for ((file_name, metadata, user, group), dev) in enriched_entries.into_iter().zip(is_device) {
         if long_list {
-            print_long_format(&metadata, &user, &group, user_width, group_width, nlink_width, size_width, dev);
+            let full_path = format!("{}/{}", path, file_name);
+            print_long_format(&metadata, &full_path, &user, &group, user_width, group_width, nlink_width, size_width, dev);
         }
 
         print!("{}", file_name);
@@ -184,7 +185,7 @@ fn list_file(path: &str, metadata: &Metadata, long_list: bool, classify: bool) -
     let is_device = metadata.file_type().is_char_device() || metadata.file_type().is_block_device();
 
     if long_list {
-        print_long_format(metadata, &user, &group, user_width, group_width, nlink_width, size_width, is_device);
+        print_long_format(metadata, path, &user, &group, user_width, group_width, nlink_width, size_width, is_device);
     }
 
     print!("{}", file_name);
@@ -212,6 +213,7 @@ fn list_file(path: &str, metadata: &Metadata, long_list: bool, classify: bool) -
 
 fn print_long_format(
     metadata: &Metadata,
+    path: &str,
     user: &str,
     group: &str,
     user_width: usize,
@@ -220,7 +222,7 @@ fn print_long_format(
     size_width: usize,
     is_device: bool
 ) {
-    fn mode_string(metadata: &Metadata) -> String {
+    fn mode_string(metadata: &Metadata, path: &str) -> String {
         let mode = metadata.permissions().mode();
         let ft = metadata.file_type();
 
@@ -254,29 +256,32 @@ fn print_long_format(
 
         let perm_str: String = perms.iter().map(|(b, c)| if *b { *c } else { '-' }).collect();
 
-        format!("{}{}", file_type_char, perm_str)
-    }
+        // ✅ Check extended attributes
+        let has_xattr = xattr::list(path).map(|mut list| list.next().is_some()).unwrap_or(false);
+        format!("{}{}{}", file_type_char, perm_str, if has_xattr { "+" } else { "" })
+}
+
 
     fn major(dev: u64) -> u64 {
-        (dev >> 8) & 0xfff
+        (dev / 256) % 4096
     }
 
     fn minor(dev: u64) -> u64 {
-        (dev & 0xff) | ((dev >> 12) & 0xfff00)
+        (dev % 256) + (((dev / 4096) % 1048576) * 256)
     }
 
-    let mode_str = mode_string(metadata);
+    let mode_str = mode_string(metadata, path);
     let nlink = metadata.nlink();
 
     let mtime = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
-    let datetime: DateTime<Local> = DateTime::<Local>::from(mtime) + Duration::hours(1);  // keep your +1h if needed
+    let datetime: DateTime<Local> = DateTime::<Local>::from(mtime) + Duration::hours(1); 
 
     let now = Local::now();
 
     let time_str = if datetime.year() == now.year() {
-        datetime.format("%b %e %H:%M").to_string()  // current year: show month day and time
+        datetime.format("%b %e %H:%M").to_string()  
     } else {
-        datetime.format("%b %e  %Y").to_string()    // other year: show month day and year with double space before year
+        datetime.format("%b %e  %Y").to_string() 
     };
 
     print!(
@@ -285,7 +290,7 @@ fn print_long_format(
         nlink,
         user,
         group,
-        nlink_width = nlink_width,
+        nlink_width = if mode_str.contains('+') {nlink_width-1} else {nlink_width},
         user_width = user_width,
         group_width = group_width
     );
@@ -308,7 +313,7 @@ fn expand_tilde(path: &str) -> String {
         env::var("HOME").unwrap_or_else(|_| "~".to_string())
     } else if path.starts_with("~/") {
         if let Ok(home) = env::var("HOME") {
-            format!("{}{}", home, &path[1..])  // replace ~ with $HOME
+            format!("{}{}", home, &path[1..])  
         } else {
             path.to_string()
         }

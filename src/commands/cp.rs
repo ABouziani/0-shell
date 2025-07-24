@@ -4,7 +4,7 @@ use std::path::Path;
 
 pub fn cp(args: &Vec<&str>) {
     if args.len() < 2 {
-        println!("No files or directories provided.");
+        eprintln!("\x1b[31mNo files or directories provided.\x1b[0m");
         return;
     }
 
