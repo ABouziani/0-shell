@@ -54,8 +54,6 @@ fn main() {
             },
             Err(s) => { 
                 clear= false;
-                // input.pop();
-                // input.push_str("'$'\n'");
                 print!("{}",s)
             }
 
