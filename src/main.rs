@@ -1,12 +1,23 @@
 mod parser;
 mod commands;
 use parser::*;
+use std::fs::read_to_string;
 use std::io::{self, Write};
 use std::{process, string};
 
 use crate::commands::pwd;
 
 fn main() {
+println!(
+"
+   ____                  _____      _          _ _ 
+  / __ \\                / ____|    | |        | | |
+ | |  | |    ______      (___   ___| |__   ___| | |
+ | |  | |   |______|    \\___ \\ / __| '_ \\ / _ \\ | |
+ | |__| |               ____) | (__| | | |  __/ | |
+  \\____/               |_____/ \\___|_| |_|\\___|_|_|
+                      
+");
 
 
     

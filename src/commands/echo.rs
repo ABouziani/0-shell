@@ -5,6 +5,7 @@ pub fn echo(args: &Vec<&str>) {
         println!();
     } else {
         let home = env::var("HOME").unwrap_or_default();
+        println!("HOME: {}", home);
         let expanded_args: Vec<String> = args
             .iter()
             .map(|arg| {
@@ -13,7 +14,7 @@ pub fn echo(args: &Vec<&str>) {
                 } else if arg.starts_with("~/") {
                     format!("{}/{}", home, &arg[2..])
                 } else {
-                    arg.to_string()
+                    arg.to_string() 
                 }
             })
             .collect();

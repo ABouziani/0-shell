@@ -127,7 +127,7 @@ fn list_dir(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::
         let total_blocks: u64 = enriched_entries.iter()
             .map(|(_, md, _, _)| md.blocks())
             .sum();
-        println!("total {}", total_blocks);
+        println!("total {}", total_blocks/2);
     }
 
     for ((file_name, metadata, user, group), dev) in enriched_entries.into_iter().zip(is_device) {
