@@ -12,11 +12,12 @@
 // // --- Manual ACL FFI bindings ---
 // pub enum acl_t {}
 
-// extern "C" {
+// unsafe extern "C" {
 //     pub fn acl_get_file(path_p: *const c_char, type_: c_int) -> *mut acl_t;
 //     pub fn acl_free(obj_p: *mut c_void) -> c_int;
 //     pub fn acl_get_entry(acl: *mut acl_t, entry_id: c_int, entry_p: *mut *mut c_void) -> c_int;
 // }
+
 
 // pub const ACL_TYPE_ACCESS: c_int = 0x8000;
 // pub const ACL_FIRST_ENTRY: c_int = 0;

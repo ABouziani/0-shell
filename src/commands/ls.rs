@@ -1,9 +1,11 @@
 use std::fs::{self, DirEntry, Metadata};
 use std::os::unix::fs::{MetadataExt, PermissionsExt, FileTypeExt};
 use std::time::SystemTime;
-use chrono::{DateTime, Local, Duration};
+use chrono::{DateTime, Local, Duration,Datelike};
 use std::io;
-use std::path::Path;
+use std::path::{Path,PathBuf};
+use std::env;
+
 
 use users::{get_user_by_uid, get_group_by_gid};
 
@@ -50,12 +52,13 @@ pub fn ls(args: &[&str]) {
 }
 
 fn list_path(path: &str, show_all: bool, long_list: bool, classify: bool) -> io::Result<()> {
-    let metadata = fs::symlink_metadata(path)?;
+    let expanded_path = expand_tilde(path);
+    let metadata = fs::symlink_metadata(&expanded_path)?;
 
     if metadata.is_dir() {
-        list_dir(path, show_all, long_list, classify)
+        list_dir(&expanded_path, show_all, long_list, classify)
     } else {
-        list_file(path, &metadata, long_list, classify)
+        list_file(&expanded_path, &metadata, long_list, classify)
     }
 }
 
@@ -266,8 +269,15 @@ fn print_long_format(
     let nlink = metadata.nlink();
 
     let mtime = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
-    let datetime: DateTime<Local> = DateTime::<Local>::from(mtime) + Duration::hours(1);
-    let time_str = datetime.format("%b %e %H:%M").to_string();
+    let datetime: DateTime<Local> = DateTime::<Local>::from(mtime) + Duration::hours(1);  // keep your +1h if needed
+
+    let now = Local::now();
+
+    let time_str = if datetime.year() == now.year() {
+        datetime.format("%b %e %H:%M").to_string()  // current year: show month day and time
+    } else {
+        datetime.format("%b %e  %Y").to_string()    // other year: show month day and year with double space before year
+    };
 
     print!(
         "{} {:>nlink_width$} {:<user_width$} {:<group_width$} ",
@@ -290,4 +300,19 @@ fn print_long_format(
     }
 
     print!("{} ", time_str);
+}
+
+
+fn expand_tilde(path: &str) -> String {
+    if path == "~" {
+        env::var("HOME").unwrap_or_else(|_| "~".to_string())
+    } else if path.starts_with("~/") {
+        if let Ok(home) = env::var("HOME") {
+            format!("{}{}", home, &path[1..])  // replace ~ with $HOME
+        } else {
+            path.to_string()
+        }
+    } else {
+        path.to_string()
+    }
 }

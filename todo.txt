@@ -40,3 +40,7 @@ $
 
  ls -l / > tottal should be deivded by 2 to  match the count
 ls -l s permession s and S arent there also and add pip in the name on pipfiles in ls -l  +
+
+
+
+fix ~ to home dir 
