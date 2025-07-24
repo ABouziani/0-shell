@@ -1,10 +1,10 @@
 use std::env;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use crate::commands::pwd::pwd;
+
 static mut PREV_DIR: Option<Mutex<PathBuf>> = None;
 
-pub fn cd(args: &Vec<&str> , path :  &mut String) {
+pub fn cd(args: &Vec<&str>, path: &mut String) {
     let home_dir = match env::var("HOME") {
         Ok(path) => path,
         Err(_) => {
@@ -39,9 +39,7 @@ pub fn cd(args: &Vec<&str> , path :  &mut String) {
         }
     } else {
         let input = args[0];
-        if input == "$HOME" {
-            home_dir.clone()
-        } else if input.starts_with("~") {
+        if input.starts_with("~") {
             input.replacen("~", &home_dir, 1)
         } else {
             input.to_string()
@@ -57,6 +55,9 @@ pub fn cd(args: &Vec<&str> , path :  &mut String) {
                 *prev = current_dir;
             }
         }
+        *path = match env::current_dir() {
+            Ok(p) => p.display().to_string(),
+            Err(_) => "/".to_string(),
+        };
     }
-        *path = pwd()
 }
