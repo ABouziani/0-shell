@@ -8,18 +8,6 @@ use std::{process, string};
 use crate::commands::pwd;
 
 fn main() {
-println!(
-"
-   ____                  _____      _          _ _ 
-  / __ \\                / ____|    | |        | | |
- | |  | |    ______      (___   ___| |__   ___| | |
- | |  | |   |______|    \\___ \\ / __| '_ \\ / _ \\ | |
- | |__| |               ____) | (__| | | |  __/ | |
-  \\____/               |_____/ \\___|_| |_|\\___|_|_|
-                      
-");
-
-
     
     let mut input = String::new();
     let mut clear = true;
@@ -31,9 +19,9 @@ println!(
             break;
         }     
         
-        let n = io::stdin().read_line(&mut input).unwrap();
+        let n = io::stdin().read_line(&mut input).ok();
 
-        if n == 0 {
+        if n == Some(0) {
             println!();
             break;
         }
