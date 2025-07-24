@@ -12,8 +12,7 @@ fn main() {
     let mut clear = true;
     let mut path_pwd = pwd::pwd();
     loop {
-        
-        if clear { print!("$ "); input.clear()};
+        if clear { print!("\x1b[1;34m{}\x1b[0m $ ", path_pwd.split('/').last().filter(|s| !s.is_empty()).unwrap_or("/")); input.clear()};
         if let Err(_) = io::stdout().flush() {
             break;
         }     
@@ -59,3 +58,4 @@ fn main() {
         };
     }
 }
+

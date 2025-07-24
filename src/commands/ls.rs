@@ -3,7 +3,7 @@ use std::os::unix::fs::{MetadataExt, PermissionsExt, FileTypeExt};
 use std::time::SystemTime;
 use chrono::{DateTime, Local, Duration,Datelike};
 use std::io;
-use std::path::{Path,PathBuf};
+use std::path::{Path};
 use std::env;
 
 
@@ -23,7 +23,7 @@ pub fn ls(args: &[&str]) {
                     'l' => long_list = true,
                     'F' => classify = true,
                     _ => {
-                        eprintln!("ls: invalid option -- '{}'", c);
+                        eprintln!("\x1b[31mls: invalid option -- '{}'\x1b[0m", c);
                         return;
                     }
                 }
@@ -46,7 +46,7 @@ pub fn ls(args: &[&str]) {
         }
 
         if let Err(e) = list_path(target, show_all, long_list, classify) {
-            eprintln!("ls: cannot access '{}': {}", target, e);
+            eprintln!("\x1b[31mls: cannot access '{}': {}\x1b[0m", target, e);
         }
     }
 }
