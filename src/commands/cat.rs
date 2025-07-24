@@ -13,7 +13,7 @@ pub fn cat(args: &[&str]) {
         } else {
             match read_file_simple(i) {
                 Ok(content) => print!("{}", content),
-                Err(e) => eprint!("cat: {}: {}", i, e),
+                Err(e) => eprint!("\x1b[31mcat: {}: {}\x1b[0m", i, e),
             }
         }
     }
@@ -24,7 +24,7 @@ fn parce() {
     loop {
         let mut input = String::new();
         if let Err(e) = std::io::stdin().read_line(&mut input) {
-            eprintln!("Error reading input: {}", e);
+            eprintln!("\x1b[31mError reading input: {}\x1b[0m", e);
             return;
         }
         if input.trim().is_empty() {

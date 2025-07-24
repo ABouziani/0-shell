@@ -2,7 +2,7 @@ use std::fs;
 
 pub fn mkdir(args: &Vec<&str>) {
     if args.is_empty() {
-        eprintln!("mkdir: missing operand");
+        eprintln!("\x1b[31mmkdir: missing operand\x1b[0m");
         return;
     }
 
@@ -10,7 +10,7 @@ pub fn mkdir(args: &Vec<&str>) {
         match fs::create_dir(path) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("mkdir: cannot create directory '{}': {}", path, e);
+                eprintln!("\x1b[31mmkdir: cannot create directory '{}': {}\x1b[0m", path, e);
             }
         }
     }

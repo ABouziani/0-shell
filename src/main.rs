@@ -47,7 +47,7 @@ fn main() {
                     "mv" => commands::mv::mv(args),
                     "mkdir" => commands::mkdir::mkdir(args),
                     "exit" => process::exit(0),
-                    _ => eprintln!("Command '{}' not found", command),
+                    _ => eprintln!("\x1b[31mCommand '{}' not found\x1b[0m", command),
                 }
             },
             Err(s) => { 

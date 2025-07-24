@@ -5,7 +5,7 @@ use std::io;
 
 pub fn mv(args: &Vec<&str>) {
     if args.len() < 2 {
-        eprintln!("mv: missing file operand");
+        eprintln!("\x1b[31mmv: missing file operand\x1b[0m");
         return;
     }
 
@@ -13,7 +13,7 @@ pub fn mv(args: &Vec<&str>) {
     let sources = &args[0..args.len() - 1];
 
     if sources.len() > 1 && !dest_path.is_dir() {
-        eprintln!("mv: target '{}' is not a directory", dest_path.display());
+        eprintln!("\x1b[31mmv: target '{}' is not a directory\x1b[0m", dest_path.display());
         return;
     }
 
@@ -21,7 +21,7 @@ pub fn mv(args: &Vec<&str>) {
         let source_path = Path::new(source_str);
         
         if let Err(e) = move_single_item(source_path, dest_path) {
-            eprintln!("mv: cannot move '{}' to '{}': {}", 
+            eprintln!("\x1b[31mmv: cannot move '{}' to '{}': {}\x1b[0m", 
                      source_path.display(), dest_path.display(), e);
         }
     }

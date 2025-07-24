@@ -4,23 +4,23 @@ use std::error::Error;
 
 pub fn rm(args: &Vec<&str>){
     if args.len() < 1 {
-        eprintln!("No files or directories provided.");
+        eprintln!("\x1b[31mNo files or directories provided.\x1b[0m");
         return;
     }
 
     let is_recursive = args.contains(&"-r");
     let paths: Vec<_> = args.iter().filter(|&&arg| arg != "-r").collect();
     if paths.iter().any(|&arg| *arg == "." || *arg == "..") {
-        eprintln!("refusing to remove '.' or '..' directory: skipping '.'");
+        eprintln!("\x1b[31mrefusing to remove '.' or '..' directory: skipping '.'\x1b[0m");
         return;
     }
     if paths.is_empty() {
-        eprintln!("No files or directories provided.");
+        eprintln!("\x1b[31mNo files or directories provided.\x1b[0m");
         return;
     }
     for path in paths {
         if let Err(e) = remove_file_or_dir(path, is_recursive){
-            eprintln!("{e}");
+            eprintln!("\x1b[31m{e}\x1b[0m");
             return;
         }
     }

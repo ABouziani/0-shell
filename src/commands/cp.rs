@@ -12,16 +12,16 @@ pub fn cp(args: &Vec<&str>) {
     let dest = args.last().unwrap();
     let dest_path = Path::new(dest);
     if ((dest_path.exists() && !dest_path.is_dir()) || !dest_path.exists()) && sources.len() > 1 {
-        eprintln!("Destination '{}' not dir.", dest);
+        eprintln!("\x1b[31mDestination '{}' not dir.\x1b[0m", dest);
         return;
     }
     if sources.is_empty() {
-        eprintln!("No files or directories provided.");
+        eprintln!("\x1b[31mNo files or directories provided.\x1b[0m");
         return;
     }
     for source in sources {
         if let Err(e) = copy_file(source, dest) {
-            eprintln!("{e}");
+            eprintln!("\x1b[31m{}\x1b[0m", e);
             return;
         }
     }

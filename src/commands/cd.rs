@@ -8,7 +8,7 @@ pub fn cd(args: &Vec<&str>, path: &mut String) {
     let home_dir = match env::var("HOME") {
         Ok(path) => path,
         Err(_) => {
-            eprintln!("cd: HOME not set");
+            eprintln!("\x1b[31mcd: HOME not set\x1b[0m");
             return;
         }
     };
@@ -33,7 +33,7 @@ pub fn cd(args: &Vec<&str>, path: &mut String) {
         }
     };
     if let Err(e) = env::set_current_dir(&target) {
-        eprintln!("cd: {}: {}", target, e);
+        eprintln!("\x1b[31mcd: {}: {}\x1b[0m", target, e);
     } else {
         let mut prev = prev_mutex.lock().unwrap();
         *prev = current_dir;
